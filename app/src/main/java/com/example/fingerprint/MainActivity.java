@@ -1,4 +1,5 @@
 package com.example.fingerprint;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -31,16 +32,18 @@ public class MainActivity extends AppCompatActivity {
 
         int result = biometricManager.canAuthenticate(
                 BiometricManager.Authenticators.BIOMETRIC_STRONG
+                        | BiometricManager.Authenticators.BIOMETRIC_WEAK
+                        | BiometricManager.Authenticators.DEVICE_CREDENTIAL
         );
 
         if (result == BiometricManager.BIOMETRIC_SUCCESS) {
             showBiometricPrompt();
         } else if (result == BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE) {
-            toast("Thiết bị không hỗ trợ vân tay");
+            toast("Thiết bị không hỗ trợ sinh trắc học");
         } else if (result == BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE) {
-            toast("Vân tay tạm thời không khả dụng");
+            toast("Sinh trắc học tạm thời không khả dụng");
         } else if (result == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED) {
-            toast("Chưa đăng ký vân tay trong máy");
+            toast("Chưa đăng ký vân tay / khuôn mặt trong máy");
         }
     }
 
@@ -58,21 +61,27 @@ public class MainActivity extends AppCompatActivity {
                         super.onAuthenticationSucceeded(result);
                         toast("Đăng nhập thành công");
 
-                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                        startActivity(intent);                    }
+                        startActivity(
+                                new Intent(MainActivity.this, HomeActivity.class)
+                        );
+                    }
 
                     @Override
                     public void onAuthenticationFailed() {
                         super.onAuthenticationFailed();
-                        toast("Vân tay không đúng");
+                        toast("Xác thực không thành công");
                     }
                 });
 
         BiometricPrompt.PromptInfo promptInfo =
                 new BiometricPrompt.PromptInfo.Builder()
                         .setTitle("Đăng nhập")
-                        .setSubtitle("Xác thực bằng vân tay")
-                        .setNegativeButtonText("Hủy")
+                        .setSubtitle("Vân tay, khuôn mặt hoặc mật mã")
+                        .setAllowedAuthenticators(
+                                BiometricManager.Authenticators.BIOMETRIC_STRONG
+                                        | BiometricManager.Authenticators.BIOMETRIC_WEAK
+                                        | BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                        )
                         .build();
 
         biometricPrompt.authenticate(promptInfo);
